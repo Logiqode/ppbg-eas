@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": 1234567890123456,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "password": "hashed_password_1",
+      "phone_number": "+6281234567890",
+      "birth_date": "1990-05-15"
+    },
+    {
+      "id": 9876543210987654,
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "password": "hashed_password_2",
+      "phone_number": "+6281122334455",
+      "birth_date": "1992-08-22"
+    }
+  ],
+  "accounts": [
+    {
+      "id": 112233445566,
+      "user_id": 1234567890123456,
+      "balance": 7550.25
+    },
+    {
+      "id": 778899001122,
+      "user_id": 1234567890123456,
+      "balance": 15200.50
+    },
+    {
+      "id": 665544332211,
+      "user_id": 9876543210987654,
+      "balance": 5430.10
+    }
+  ]
+}
