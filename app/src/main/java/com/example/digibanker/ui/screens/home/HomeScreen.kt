@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.digibanker.model.Account
 import com.example.digibanker.util.formatCurrency
 import compose.icons.FontAwesomeIcons
@@ -31,7 +32,7 @@ val LightTeal = Color(0xFFB2DFDB)
 val TextOnTeal = Color.White
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -47,7 +48,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         ) {
             TotalBalanceHeader(balance = uiState.totalBalance)
             AccountCarousel(accounts = uiState.accounts)
-            ActionButtons()
+            ActionButtons(navController = navController, fromAccountId = uiState.accounts.firstOrNull()?.id)
         }
     }
 }
@@ -166,7 +167,7 @@ fun AccountCard(account: Account) {
 }
 
 @Composable
-fun ActionButtons() {
+fun ActionButtons(navController: NavController, fromAccountId: Long?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,17 +176,16 @@ fun ActionButtons() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(
-                onClick = { /* TODO: Handle Transfer */ },
+                onClick = {
+                    fromAccountId?.let {
+                        navController.navigate("transfer/$it")
+                    }
+                },
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(72.dp),
+                enabled = fromAccountId != null
             ) {
-                // Placeholder for a FontAwesome Icon.
-                // You would replace this with your FontAwesome icon implementation.
-                // For example: FontAwesomeIcon(icon = "fa-paper-plane", ...)
-
-                // Text("FA: Send", color = TealSecondary)
-
                 Icon(
                     imageVector = FontAwesomeIcons.Solid.PaperPlane,
                     contentDescription = "Send",
@@ -203,11 +203,6 @@ fun ActionButtons() {
                 colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
                 modifier = Modifier.size(72.dp)
             ) {
-                // Placeholder for a FontAwesome Icon.
-                // You would replace this with your FontAwesome icon implementation.
-                // For example: FontAwesomeIcon(icon = "fa-qrcode", ...)
-                // Text("FA: QR", color = TealSecondary)
-
                 Icon(
                     imageVector = FontAwesomeIcons.Solid.Qrcode,
                     contentDescription = "Send",
