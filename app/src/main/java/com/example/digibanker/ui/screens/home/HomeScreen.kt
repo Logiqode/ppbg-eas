@@ -198,14 +198,19 @@ fun ActionButtons(navController: NavController, fromAccountId: Long?) {
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(
-                onClick = { /* TODO: Handle QR Pay */ },
+                onClick = {
+                    fromAccountId?.let {
+                        navController.navigate("qrcode/$it")
+                    }
+                },
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(72.dp),
+                enabled = fromAccountId != null
             ) {
                 Icon(
                     imageVector = FontAwesomeIcons.Solid.Qrcode,
-                    contentDescription = "Send",
+                    contentDescription = "QR Pay",
                     tint = TealSecondary
                 )
             }
