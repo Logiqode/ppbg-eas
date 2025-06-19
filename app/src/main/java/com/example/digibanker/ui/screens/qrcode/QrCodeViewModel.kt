@@ -3,6 +3,7 @@ package com.example.digibanker.ui.screens.qrcode
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope // Perubahan 1: Import yang dibutuhkan
 import com.example.digibanker.data.repository.BankRepository
 import com.example.digibanker.model.Account
 import com.example.digibanker.model.User
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch // Perubahan 2: Import yang dibutuhkan
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -27,24 +29,25 @@ class QrCodeViewModel(private val bankRepository: BankRepository) : ViewModel() 
     val uiState: StateFlow<QrCodeUiState> = _uiState.asStateFlow()
 
     fun loadQrCodeData(accountId: Long, qrSize: Int) {
-        val account = bankRepository.getAccount(accountId)
-        val user = account?.let { bankRepository.getUser(it.userId) }
+        viewModelScope.launch {
+            val account = bankRepository.getAccount(accountId)
+            val user = account?.let { bankRepository.getUser(it.userId) }
 
-        if (account != null && user != null) {
-            // Data yang akan di-encode ke dalam QR Code
-            val qrContent = Json.encodeToString(mapOf("accountId" to account.id.toString()))
-            val bitmap = QrCodeGenerator.generate(qrContent, qrSize, qrSize)
+            if (account != null && user != null) {
+                val qrContent = Json.encodeToString(mapOf("accountId" to account.id.toString()))
+                val bitmap = QrCodeGenerator.generate(qrContent, qrSize, qrSize)
 
-            _uiState.update {
-                it.copy(
-                    user = user,
-                    account = account,
-                    qrBitmap = bitmap,
-                    isLoading = false
-                )
+                _uiState.update {
+                    it.copy(
+                        user = user,
+                        account = account,
+                        qrBitmap = bitmap,
+                        isLoading = false
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
             }
-        } else {
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 }

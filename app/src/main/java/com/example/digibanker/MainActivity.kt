@@ -7,25 +7,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.digibanker.data.datasource.local.JsonDataSource
-import com.example.digibanker.data.repository.BankRepository
 import com.example.digibanker.ui.navigation.AppNavigation
 import com.example.digibanker.ui.theme.DigiBankerTheme
+import com.example.digibanker.util.SessionManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val dataSource = JsonDataSource(applicationContext)
-        val repository = BankRepository(dataSource)
-
+        val repository = MyApplication.repository
+        val sessionManager = SessionManager(applicationContext)
         setContent {
             DigiBankerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(repository = repository)
+                    AppNavigation(
+                        repository = repository,
+                        sessionManager = sessionManager
+                    )
                 }
             }
         }

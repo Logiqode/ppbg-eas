@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCard
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,27 +38,54 @@ val TextOnTeal = Color.White
 fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.logoutComplete.collect { isLogoutComplete ->
+            if (isLogoutComplete) {
+                navController.navigate("login") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
-            HomeTopAppBar(userName = uiState.userName)
+            HomeTopAppBar(
+                userName = uiState.userName,
+                onLogoutClicked = { viewModel.logout() }
+            )
         },
-        containerColor = Color(0xFFF0F4F3) // A very light grey-teal
+        containerColor = Color(0xFFF0F4F3)
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            TotalBalanceHeader(balance = uiState.totalBalance)
-            AccountCarousel(accounts = uiState.accounts)
-            ActionButtons(navController = navController, fromAccountId = uiState.accounts.firstOrNull()?.id)
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                TotalBalanceHeader(balance = uiState.totalBalance)
+                AccountCarousel(accounts = uiState.accounts)
+                ActionButtons(
+                    navController = navController,
+                    fromAccountId = uiState.accounts.firstOrNull()?.id,
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar(userName: String) {
+fun HomeTopAppBar(
+    userName: String,
+    onLogoutClicked: () -> Unit
+) {
     TopAppBar(
         title = {
             Column {
@@ -69,6 +99,15 @@ fun HomeTopAppBar(userName: String) {
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onLogoutClicked) {
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = "Logout",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -102,15 +141,27 @@ fun TotalBalanceHeader(balance: Double) {
 
 @Composable
 fun AccountCarousel(accounts: List<Account>) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(accounts) { account ->
-            AccountCard(account = account)
+    if (accounts.size == 1) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AccountCard(account = accounts.first())
+        }
+    } else {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(accounts) { account ->
+                AccountCard(account = account)
+            }
         }
     }
 }
+
 
 @Composable
 fun AccountCard(account: Account) {
@@ -156,7 +207,6 @@ fun AccountCard(account: Account) {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    // Format the account number for display
                     text = "●●●● " + account.id.toString().takeLast(4),
                     color = LightTeal,
                     fontSize = 16.sp
@@ -167,55 +217,65 @@ fun AccountCard(account: Account) {
 }
 
 @Composable
-fun ActionButtons(navController: NavController, fromAccountId: Long?) {
+fun ActionButtons(navController: NavController, fromAccountId: Long?, viewModel: HomeViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 40.dp, start = 32.dp, end = 32.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(
-                onClick = {
-                    fromAccountId?.let {
-                        navController.navigate("transfer/$it")
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
-                modifier = Modifier.size(72.dp),
-                enabled = fromAccountId != null
-            ) {
-                Icon(
-                    imageVector = FontAwesomeIcons.Solid.PaperPlane,
-                    contentDescription = "Send",
-                    tint = TealSecondary
-                )
+        ActionButton(
+            label = "Transfer",
+            icon = FontAwesomeIcons.Solid.PaperPlane,
+            onClick = {
+                fromAccountId?.let {
+                    navController.navigate("transfer/$it")
+                }
+            },
+            enabled = fromAccountId != null
+        )
 
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Transfer", fontWeight = FontWeight.SemiBold)
+        ActionButton(
+            label = "Add Card",
+            icon = Icons.Default.AddCard,
+            onClick = { viewModel.addAccount() }
+        )
+
+        ActionButton(
+            label = "QR Pay",
+            icon = FontAwesomeIcons.Solid.Qrcode,
+            onClick = {
+                fromAccountId?.let {
+                    navController.navigate("qrcode/$it")
+                }
+            },
+            enabled = fromAccountId != null
+        )
+    }
+}
+
+@Composable
+fun ActionButton(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
+            modifier = Modifier.size(72.dp),
+            enabled = enabled
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = TealSecondary
+            )
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(
-                onClick = {
-                    fromAccountId?.let {
-                        navController.navigate("qrcode/$it")
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightTeal),
-                modifier = Modifier.size(72.dp),
-                enabled = fromAccountId != null
-            ) {
-                Icon(
-                    imageVector = FontAwesomeIcons.Solid.Qrcode,
-                    contentDescription = "QR Pay",
-                    tint = TealSecondary
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("QR Pay", fontWeight = FontWeight.SemiBold)
-        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(label, fontWeight = FontWeight.SemiBold)
     }
 }

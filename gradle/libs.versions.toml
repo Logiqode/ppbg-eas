@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.0"
+agp = "8.9.2"
 composeIcons = "1.1.1"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
@@ -16,6 +16,7 @@ zxing = "3.5.3"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 composeIcons-fontAwesome = { module = "br.com.devsrsouza.compose.icons:font-awesome", version.ref = "composeIcons" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
