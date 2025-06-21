@@ -221,7 +221,7 @@ fun ActionButtons(navController: NavController, fromAccountId: Long?, viewModel:
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 40.dp, start = 32.dp, end = 32.dp),
+            .padding(top = 40.dp, start = 16.dp, end = 16.dp), // Adjusted padding
         horizontalArrangement = Arrangement.SpaceAround
     ) {
         ActionButton(
@@ -236,13 +236,15 @@ fun ActionButtons(navController: NavController, fromAccountId: Long?, viewModel:
         )
 
         ActionButton(
-            label = "Add Card",
-            icon = Icons.Default.AddCard,
-            onClick = { viewModel.addAccount() }
+            label = "Scan to Pay",
+            icon = FontAwesomeIcons.Solid.Qrcode,
+            onClick = {
+                navController.navigate("qr_scanner")
+            }
         )
 
         ActionButton(
-            label = "QR Pay",
+            label = "Receive QR",
             icon = FontAwesomeIcons.Solid.Qrcode,
             onClick = {
                 fromAccountId?.let {
@@ -250,6 +252,12 @@ fun ActionButtons(navController: NavController, fromAccountId: Long?, viewModel:
                 }
             },
             enabled = fromAccountId != null
+        )
+
+        ActionButton(
+            label = "Add Card",
+            icon = Icons.Default.AddCard,
+            onClick = { viewModel.addAccount() }
         )
     }
 }

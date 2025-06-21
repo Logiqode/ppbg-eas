@@ -26,11 +26,17 @@ class LoginViewModel(
     val loginSuccess = _loginSuccess.asSharedFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.update { it.copy(email = email, loginError = null) }
+        // This filter is okay, it allows common email characters.
+        val filteredEmail = email.filter { it.isLetterOrDigit() || it == '@' || it == '.' || it == '-' || it == '_' }
+        _uiState.update { it.copy(email = filteredEmail, loginError = null) }
     }
 
     fun onPasswordChange(password: String) {
-        _uiState.update { it.copy(password = password, loginError = null) }
+        // --- THIS IS THE FIX ---
+        // We will filter out whitespace and control characters instead of allowing only alphanumerics.
+        // This will correctly preserve the underscore in "hashed_password_1".
+        val filteredPassword = password.filter { !it.isWhitespace() }
+        _uiState.update { it.copy(password = filteredPassword, loginError = null) }
     }
 
     fun loginUser() {
