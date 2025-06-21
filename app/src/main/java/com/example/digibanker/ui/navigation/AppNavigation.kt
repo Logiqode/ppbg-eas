@@ -17,13 +17,14 @@ import com.example.digibanker.ui.screens.login.LoginViewModelFactory
 import com.example.digibanker.ui.screens.qrcode.QrCodeScreen
 import com.example.digibanker.ui.screens.qrcode.QrCodeViewModel
 import com.example.digibanker.ui.screens.qrcode.QrCodeViewModelFactory
+import com.example.digibanker.ui.screens.qrcode.QrScannerScreen
+import com.example.digibanker.ui.screens.register.RegisterScreen
+import com.example.digibanker.ui.screens.register.RegisterViewModel
+import com.example.digibanker.ui.screens.register.RegisterViewModelFactory
 import com.example.digibanker.ui.screens.transfer.TransferScreen
 import com.example.digibanker.ui.screens.transfer.TransferViewModel
 import com.example.digibanker.ui.screens.transfer.TransferViewModelFactory
 import com.example.digibanker.util.SessionManager
-import com.example.digibanker.ui.screens.register.RegisterScreen
-import com.example.digibanker.ui.screens.register.RegisterViewModel
-import com.example.digibanker.ui.screens.register.RegisterViewModelFactory
 
 @Composable
 fun AppNavigation(
@@ -83,6 +84,11 @@ fun AppNavigation(
                 accountId = accountId
             )
         }
+
+        composable("qr_scanner") {
+            QrScannerScreen(navController = navController)
+        }
+
         composable("register") {
             val registerViewModel: RegisterViewModel = viewModel(
                 factory = RegisterViewModelFactory(repository)

@@ -8,15 +8,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Eye
+import compose.icons.fontawesomeicons.solid.EyeSlash
 
 private val TealPrimary = Color(0xFF00796B)
 private val TealSecondary = Color(0xFF004D40)
@@ -28,6 +36,7 @@ fun LoginScreen(
     viewModel: LoginViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loginSuccess.collect {
@@ -84,9 +93,20 @@ fun LoginScreen(
                     focusedBorderColor = TealPrimary,
                     unfocusedBorderColor = TealSecondary.copy(alpha = 0.5f)
                 ),
-                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        FontAwesomeIcons.Solid.EyeSlash
+                    else FontAwesomeIcons.Solid.Eye
+
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = description, tint = TealPrimary)
+                    }
+                }
             )
 
             if (uiState.loginError != null) {
