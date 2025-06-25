@@ -14,7 +14,13 @@ import com.example.digibanker.util.SessionManager
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val repository = MyApplication.repository
+
+        // --- PERBAIKAN DI SINI ---
+        // 1. Dapatkan instance aplikasi.
+        // 2. Lakukan cast ke MyApplication.
+        // 3. Ambil repository dari instance tersebut.
+        val repository = (application as MyApplication).repository
+
         val sessionManager = SessionManager(applicationContext)
         setContent {
             DigiBankerTheme {

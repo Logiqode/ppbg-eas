@@ -218,49 +218,64 @@ fun AccountCard(account: Account) {
 
 @Composable
 fun ActionButtons(navController: NavController, fromAccountId: Long?, viewModel: HomeViewModel) {
-    Row(
+    // Mengubah Row utama menjadi Column
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 40.dp, start = 16.dp, end = 16.dp), // Adjusted padding
-        horizontalArrangement = Arrangement.SpaceAround
+            .padding(top = 40.dp, start = 16.dp, end = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp) // Memberi jarak antar baris
     ) {
-        ActionButton(
-            label = "Transfer",
-            icon = FontAwesomeIcons.Solid.PaperPlane,
-            onClick = {
-                fromAccountId?.let {
-                    navController.navigate("transfer/$it")
+        // Baris Pertama (Tombol Transfer & Scan to Pay)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            ActionButton(
+                label = "Transfer",
+                icon = FontAwesomeIcons.Solid.PaperPlane,
+                onClick = {
+                    fromAccountId?.let {
+                        navController.navigate("transfer/$it")
+                    }
+                },
+                enabled = fromAccountId != null
+            )
+
+            ActionButton(
+                label = "Scan to Pay",
+                icon = FontAwesomeIcons.Solid.Qrcode,
+                onClick = {
+                    navController.navigate("qr_scanner")
                 }
-            },
-            enabled = fromAccountId != null
-        )
+            )
+        }
 
-        ActionButton(
-            label = "Scan to Pay",
-            icon = FontAwesomeIcons.Solid.Qrcode,
-            onClick = {
-                navController.navigate("qr_scanner")
-            }
-        )
+        // Baris Kedua (Tombol Receive QR & Add Card)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            ActionButton(
+                label = "Receive QR",
+                icon = FontAwesomeIcons.Solid.Qrcode,
+                onClick = {
+                    fromAccountId?.let {
+                        navController.navigate("qrcode/$it")
+                    }
+                },
+                enabled = fromAccountId != null
+            )
 
-        ActionButton(
-            label = "Receive QR",
-            icon = FontAwesomeIcons.Solid.Qrcode,
-            onClick = {
-                fromAccountId?.let {
-                    navController.navigate("qrcode/$it")
-                }
-            },
-            enabled = fromAccountId != null
-        )
-
-        ActionButton(
-            label = "Add Card",
-            icon = Icons.Default.AddCard,
-            onClick = { viewModel.addAccount() }
-        )
+            ActionButton(
+                label = "Add Card",
+                icon = Icons.Default.AddCard,
+                onClick = { viewModel.addAccount() }
+            )
+        }
     }
 }
+
 
 @Composable
 fun ActionButton(
@@ -269,7 +284,11 @@ fun ActionButton(
     onClick: () -> Unit,
     enabled: Boolean = true
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Menambahkan modifier agar setiap tombol memiliki lebar yang konsisten
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(90.dp) // Memberi lebar tetap
+    ) {
         Button(
             onClick = onClick,
             shape = RoundedCornerShape(16.dp),
@@ -284,6 +303,11 @@ fun ActionButton(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(label, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = label,
+            fontWeight = FontWeight.SemiBold,
+            // Menambahkan textAlign untuk memastikan teks berada di tengah jika lebih dari 1 baris
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }

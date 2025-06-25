@@ -47,3 +47,30 @@ com.example.digibanker/
         ├── Color.kt
         ├── Theme.kt
         └── Type.kt
+
+# Additional files in the project root
+build.gradle.kts
+settings.gradle.kts
+gradle.properties
+gradlew
+gradlew.bat
+local.properties
+README.md
+
+# Gradle wrapper and config
+/gradle/
+    ├── libs.versions.toml
+    └── wrapper/
+        ├── gradle-wrapper.jar
+        └── gradle-wrapper.properties
+
+# App module build and config
+/app/
+    ├── build.gradle.kts
+    ├── proguard-rules.pro
+    └── src/
+        ├── androidTest/
+        │   └── java/
+        ├── main/
+        └── test/
+            └── java/

@@ -1,91 +1,64 @@
 package com.example.digibanker.data.repository
 
-import android.util.Log
-import com.example.digibanker.data.datasource.local.JsonDataSource
+import com.example.digibanker.data.datasource.local.BankDao
 import com.example.digibanker.model.Account
-import com.example.digibanker.model.Database
 import com.example.digibanker.model.User
 
-class BankRepository(private val dataSource: JsonDataSource) {
+class BankRepository(private val bankDao: BankDao) {
 
     suspend fun addAccountForUser(userId: Long) {
-        val currentUsers = dataSource.getUsers()
-        val currentAccounts = dataSource.getAccounts()
-
         val newAccount = Account(
             id = System.currentTimeMillis(),
             userId = userId,
             balance = 0.0
         )
-
-        val updatedAccountList = currentAccounts + newAccount
-
-        val newDatabaseState = Database(users = currentUsers, accounts = updatedAccountList)
-        dataSource.saveDatabase(newDatabaseState)
+        bankDao.insertAccount(newAccount)
     }
 
     suspend fun registerUser(newUser: User): Boolean {
-        val currentUsers = dataSource.getUsers()
-        if (currentUsers.any { it.email.equals(newUser.email, ignoreCase = true) }) {
-            Log.w("BankRepository", "Registrasi gagal: Email ${newUser.email} sudah ada.")
-            return false
+        if (bankDao.getUserByEmail(newUser.email) != null) {
+            return false // Email sudah ada
         }
-
-        val updatedUserList = currentUsers + newUser
-        val currentAccounts = dataSource.getAccounts()
-
-        val newAccount = Account(
-            id = System.currentTimeMillis() + 1,
-            userId = newUser.id,
-            balance = 0.0
-        )
-        val updatedAccountList = currentAccounts + newAccount
-
-        val newDatabaseState = Database(users = updatedUserList, accounts = updatedAccountList)
-        dataSource.saveDatabase(newDatabaseState)
+        bankDao.insertUser(newUser)
+        // Buat akun pertama untuk user baru
+        addAccountForUser(newUser.id)
         return true
     }
 
     suspend fun getUsers(): List<User> {
-        return dataSource.getUsers()
+        return bankDao.getUsers()
     }
 
     suspend fun getUser(userId: Long): User? {
-        return dataSource.getUsers().find { it.id == userId }
+        return bankDao.getUser(userId)
     }
 
     suspend fun getAccountsForUser(userId: Long): List<Account> {
-        val userExists = dataSource.getUsers().any { it.id == userId }
-        if (!userExists) return emptyList()
-        return dataSource.getAccounts().filter { it.userId == userId }
+        return bankDao.getAccountsForUser(userId)
     }
 
     suspend fun getAccount(accountId: Long): Account? {
-        return dataSource.getAccounts().find { it.id == accountId }
+        return bankDao.getAccount(accountId)
     }
 
     suspend fun login(email: String, password: String): User? {
-        val user = dataSource.getUsers().find { it.email.equals(email, ignoreCase = true) }
+        val user = bankDao.getUserByEmail(email)
         return if (user != null && user.password == password) user else null
     }
 
     suspend fun performTransfer(fromAccountId: Long, toAccountId: Long, amount: Double): Boolean {
-        val allAccounts = dataSource.getAccounts().toMutableList()
-        val allUsers = dataSource.getUsers()
-        val fromIndex = allAccounts.indexOfFirst { it.id == fromAccountId }
-        val toIndex = allAccounts.indexOfFirst { it.id == toAccountId }
+        val fromAccount = bankDao.getAccount(fromAccountId)
+        val toAccount = bankDao.getAccount(toAccountId)
 
-        if (fromIndex == -1 || toIndex == -1 || allAccounts[fromIndex].balance < amount) {
+        if (fromAccount == null || toAccount == null || fromAccount.balance < amount) {
             return false
         }
 
-        val fromAccount = allAccounts[fromIndex]
-        val toAccount = allAccounts[toIndex]
-        allAccounts[fromIndex] = fromAccount.copy(balance = fromAccount.balance - amount)
-        allAccounts[toIndex] = toAccount.copy(balance = toAccount.balance + amount)
+        val updatedFromAccount = fromAccount.copy(balance = fromAccount.balance - amount)
+        val updatedToAccount = toAccount.copy(balance = toAccount.balance + amount)
 
-        val newDatabaseState = Database(users = allUsers, accounts = allAccounts)
-        dataSource.saveDatabase(newDatabaseState)
+        bankDao.updateAccount(updatedFromAccount)
+        bankDao.updateAccount(updatedToAccount)
         return true
     }
 }
